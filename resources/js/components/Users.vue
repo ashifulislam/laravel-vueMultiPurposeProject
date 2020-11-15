@@ -38,12 +38,12 @@
 
 
                                 <td>
-                                    <a href="">
+                                    <a href="#">
                                         <i class="fa fa-edit blue"></i>
                                     </a>
                                     /
 
-                                    <a href="">
+                                    <a href="#" @click="deleteUsers(user.id)">
                                         <i class="fa fa-trash black"></i>
 
                                     </a>
@@ -131,6 +131,7 @@
     export default {
         data() {
             return {
+                //Here the user object is created
                 users:{},
                 form: new Form({
                     id:'',
@@ -144,19 +145,66 @@
             }
         },
         methods:{
-            loadUser(){
+            loadUsers(){
+                //made a get request with data
             axios.get("api/user").then(({data})=>(this.users=data.data));
             },
+            deleteUsers(id){
+                swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    //Send request to the server
+                    this.form.delete('api/user/'+id).then(()=>{
+                        if (result.isConfirmed) {
+                            swal.fire(
+                                'Deleted!',
+                                'Your file has been deleted.',
+                                'success'
+                            )
+                            Fire.$emit('afterCreate');
+
+                        }
+                    }).catch(()=>{
+                        swal("Failed","There was something mistakes")
+                    });
+
+                })
+            },
            createUser(){
-            this.form.post('api/user')
-               toast.fire({
-                   icon: 'success',
-                   title: 'Signed in successfully'
-               })
+                //made post request
+            this.form.post('api/user').then(()=>{
+                //the event is initialized after creating the user
+                Fire.$emit('afterCreate');
+
+                //hide the modal window
+                $('#addNew').modal('hide')
+                //sweet alert handling
+                toast.fire({
+                    icon: 'success',
+                    title: 'Signed in successfully'
+                })
+            }).catch(()=>{
+
+            })
+
             }
         },
         created() {
-            this.loadUser();
+            //When the component is created this is called
+            this.loadUsers();
+            //After load the user here we fire on(updated)
+            Fire.$on('afterCreate',()=>{
+                this.loadUsers();
+            });
+
+            //page is refreshed in every 3 seconds
+            // setInterval(()=>this.loadUsers(),3000);
         }
     }
 </script>

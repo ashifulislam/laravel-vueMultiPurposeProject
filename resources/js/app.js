@@ -20,6 +20,9 @@ window.toast = toast;
 
 
 
+window.Fire=new Vue();
+
+
 window.Form= Form;
 
 Vue.component(HasError.name, HasError)
@@ -34,7 +37,7 @@ let routes = [
 
 ]
 const router = new VueRouter({
-
+    mode:'history',
     routes // short for `routes: routes`
 })
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);

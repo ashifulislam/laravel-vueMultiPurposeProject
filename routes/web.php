@@ -23,6 +23,9 @@ Route::prefix('agent')->group(function(){
     Route::get('/login','Auth\AgentLoginController@showLogin')->name('agent.login');
     Route::post('/login','Auth\AgentLoginController@login')->name('agent.login.submit');
 });
+Route::get('{path}','HomeController@index')->where( 'path', '([A-z\d\-\/_.])+' );
+
+
 
 
 
