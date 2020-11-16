@@ -7,7 +7,7 @@
                         <h3 class="card-title">User's profile </h3>
 
                         <div class="card-tools">
-                                <button class="btn btn-success" data-toggle="modal" data-target="#addNew">
+                                <button class="btn btn-success" @click="newModal">
 
                                     Add new user
                                     <i class="fas fa-user-plus"></i>
@@ -29,7 +29,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="user in users" :key="user.id">
+                            <tr v-for="user in users.data" :key="user.id">
                                 <td>{{user.id}}</td>
                                 <td>{{user.name}}</td>
                                 <td>{{user.email}}</td>
@@ -38,7 +38,7 @@
 
 
                                 <td>
-                                    <a href="#">
+                                    <a href="#" @click="editModal(user)">
                                         <i class="fa fa-edit blue"></i>
                                     </a>
                                     /
@@ -54,6 +54,11 @@
                         </table>
                     </div>
                     <!-- /.card-body -->
+                    <div class="card-footer">
+                        <pagination :data="users" @pagination-change-page="getResults"></pagination>
+
+                    </div>
+
                 </div>
                 <!-- /.card -->
             </div>
@@ -62,12 +67,14 @@
             <div class="modal-dialog modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addNewLabel">Add New User</h5>
+                        <h5 v-show="!editMode" class="modal-title" id="addNewLabel">Add New User</h5>
+                        <h5 v-show="editMode" class="modal-title" id="addNewLabel">Update The User</h5>
+
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <form @submit.prevent="createUser">
+                    <form @submit.prevent="editMode ? updateUser()  : createUser()">
 
 
                     <div class="modal-body">
@@ -118,7 +125,9 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Add New</button>
+                        <button v-show="!editMode" type="submit" class="btn btn-primary">Add New</button>
+                        <button v-show="editMode" type="submit" class="btn btn-success">Update</button>
+
                     </div>
                     </form>
                 </div>
@@ -131,6 +140,8 @@
     export default {
         data() {
             return {
+                //variables
+                editMode:false,
                 //Here the user object is created
                 users:{},
                 form: new Form({
@@ -145,10 +156,50 @@
             }
         },
         methods:{
+            getResults(page = 1) {
+                axios.get('api/user?page=' + page)
+                    .then(response => {
+                        this.users = response.data;
+                    });
+            },
+            updateUser(id){
+                // console.log('editing data');
+                this.form.put('api/user/'+this.form.id)
+                .then(()=>{
+                //success message
+                    $('#addNew').modal('hide');
+
+                    swal.fire(
+                        'updated!',
+                        'Your file has been updated.',
+                        'success'
+                    )
+                    //Here the event is created
+                    Fire.$emit('afterCreate');
+                }).catch(()=>{
+
+                    })
+            },
+            editModal(user){
+                this.editMode=true;
+                //reset the form
+                this.form.reset();
+                $('#addNew').modal('show');
+                this.form.fill(user);
+
+
+            },
+            newModal(){
+                this.editMode=false;
+                //reset the form
+                this.form.reset();
+                $('#addNew').modal('show');
+
+
+            },
             loadUsers(){
                 //made a get request with data
-            axios.get("api/user").then(({data})=>(this.users=data.data));
-            },
+                axios.get("api/user").then(({ data }) => (this.users = data));            },
             deleteUsers(id){
                 swal.fire({
                     title: 'Are you sure?',
@@ -167,6 +218,7 @@
                                 'Your file has been deleted.',
                                 'success'
                             )
+                            //Here the event is created
                             Fire.$emit('afterCreate');
 
                         }
@@ -195,7 +247,17 @@
 
             }
         },
+
         created() {
+            Fire.$on('searching',() => {
+                let query = this.$parent.search;
+                axios.get('api/findUser?q=' + query)
+                    .then((data) => {
+                        this.users = data.data
+                    })
+                    .catch(() => {
+                    })
+            })
             //When the component is created this is called
             this.loadUsers();
             //After load the user here we fire on(updated)
