@@ -63,6 +63,8 @@
                 <!-- /.card -->
             </div>
         </div>
+
+
         <div class="modal fade" id="addNew" tabindex="-1" role="dialog" aria-labelledby="addNewLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
@@ -196,10 +198,12 @@
                 $('#addNew').modal('show');
 
 
+
             },
             loadUsers(){
                 //made a get request with data
-                axios.get("api/user").then(({ data }) => (this.users = data));            },
+                axios.get("api/user").then(({ data }) => (this.users = data));
+                },
             deleteUsers(id){
                 swal.fire({
                     title: 'Are you sure?',
